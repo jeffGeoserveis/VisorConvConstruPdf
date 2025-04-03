@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Visor PDF personalizado</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+      body { margin: 0; background: #f0f0f0; font-family: sans-serif; }
+      #pdf-viewer { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; }
+      canvas { border: 1px solid #ccc; background: white; }
+    </style>
+  </head>
+  <body>
+    <div id="pdf-viewer"><canvas id="pdf-canvas"></canvas></div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const file = urlParams.get('file');
+      const pageNumber = parseInt(urlParams.get('page')) || 1;
+
+      const canvas = document.getElementById("pdf-canvas");
+      const context = canvas.getContext("2d");
+
+      if (!file) {
+        document.body.innerHTML = "<h2 style='text-align:center;color:red;'>No se especificó un archivo PDF.</h2>";
+      } else {
+        const loadingTask = pdfjsLib.getDocument(file);
+        loadingTask.promise.then(pdf => {
+          pdf.getPage(pageNumber).then(page => {
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const renderContext = {
+              canvasContext: context,
+              viewport: viewport
+            };
+            page.render(renderContext);
+          });
+        }).catch(error => {
+          document.body.innerHTML = "<h2 style='text-align:center;color:red;'>Error cargando el PDF: " + error.message + "</h2>";
+        });
+      }
+    </script>
+  </body>
+</html>
